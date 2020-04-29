@@ -33,11 +33,12 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MESSAGE_BUFF_LEN 33 // 32 payload + \0
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,8 +50,8 @@
 
 /* USER CODE BEGIN PV */
 volatile uint8_t nrf24_rx_flag, nrf24_tx_flag, nrf24_mr_flag;
-uint8_t Nrf24_Message[NRF24_PAYLOAD_SIZE];
-uint8_t Message[32];
+uint8_t Nrf24_Message[MESSAGE_BUFF_LEN];
+uint8_t Message[MESSAGE_BUFF_LEN];
 uint8_t MessageLength;
 /* USER CODE END PV */
 
@@ -109,8 +110,12 @@ int main(void)
   {
 	  if(nRF24_RXAvailible())
 	  {
-		  nRF24_ReadRXPaylaod(Nrf24_Message);
-		  MessageLength = sprintf(Message, "%c\n\r", Nrf24_Message[0]);
+		  for(uint8_t i = 0; i < MESSAGE_BUFF_LEN; i++)
+		  {
+			  Nrf24_Message[i] = 0;
+		  }
+		  nRF24_ReadRXPaylaod(Nrf24_Message, &MessageLength);
+		  MessageLength = sprintf(Message, "%s\n\r", Nrf24_Message);
 		  HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
 	  }
 
