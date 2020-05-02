@@ -108,14 +108,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(nRF24_RXAvailible())
+	  if(nRF24_ReceivePacket(Message, &MessageLength) == NRF24_RECEIVED_PACKET)
 	  {
-		  for(uint8_t i = 0; i < MESSAGE_BUFF_LEN; i++)
-		  {
-			  Nrf24_Message[i] = 0;
-		  }
-		  nRF24_ReadRXPaylaod(Nrf24_Message, &MessageLength);
-		  MessageLength = sprintf(Message, "%s\n\r", Nrf24_Message);
+		  Message[MessageLength] = 0; // end of string
+		  MessageLength = sprintf(Message, "%s\n\r", Message);
 		  HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
 	  }
 
