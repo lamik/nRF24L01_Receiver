@@ -49,7 +49,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile uint8_t nrf24_rx_flag, nrf24_tx_flag, nrf24_mr_flag;
 uint8_t Nrf24_Message[MESSAGE_BUFF_LEN];
 uint8_t Message[MESSAGE_BUFF_LEN];
 uint8_t MessageLength;
@@ -57,6 +56,7 @@ uint8_t MessageLength;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -96,6 +96,9 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_SPI1_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   nRF24_Init(&hspi1);
 
@@ -108,12 +111,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(nRF24_ReceivePacket(Message, &MessageLength) == NRF24_RECEIVED_PACKET)
-	  {
-		  Message[MessageLength] = 0; // end of string
-		  MessageLength = sprintf(Message, "%s\n\r", Message);
-		  HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
-	  }
+	  nRF24_Event();
 
     /* USER CODE END WHILE */
 
@@ -166,8 +164,33 @@ void SystemClock_Config(void)
   }
 }
 
-/* USER CODE BEGIN 4 */
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* EXTI9_5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+}
 
+/* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	nRF24_IRQ_Handler();
+}
+
+void nRF24_EventRxCallback(void)
+{
+	do
+	{
+		nRF24_ReceivePacket(Message, &MessageLength);
+		Message[MessageLength] = 0; // end of string
+		MessageLength = sprintf(Message, "%s\n\r", Message);
+		HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
+	}while(!nRF24_IsRxEmpty());
+}
 /* USER CODE END 4 */
 
 /**
