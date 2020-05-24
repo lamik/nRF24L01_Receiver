@@ -450,9 +450,11 @@ void nRF24_ReadRXPaylaod(uint8_t *data, uint8_t *size)
 #else
 	nRF24_ReadRegisters(NRF24_CMD_R_RX_PAYLOAD, data, NRF24_PAYLOAD_SIZE);
 #endif
+#if (NRF24_INTERRUPT_MODE == 0)
 	nRF24_WriteRegister(NRF24_STATUS, (1<NRF24_RX_DR));
 	if(nRF24_ReadStatus() & (1<<NRF24_TX_DS))
 		nRF24_WriteRegister(NRF24_STATUS, (1<<NRF24_TX_DS));
+#endif
 }
 
 nRF24_TX_Status nRF24_SendPacket(uint8_t* Data, uint8_t Size)
