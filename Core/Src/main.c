@@ -178,7 +178,7 @@ static void MX_NVIC_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(Pin == NRF24_IRQ_Pin)
+	if(GPIO_Pin == NRF24_IRQ_Pin)
 	{
 		nRF24_IRQ_Handler();
 	}
