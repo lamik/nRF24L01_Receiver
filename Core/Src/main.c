@@ -37,7 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define MESSAGE_BUFF_LEN 33 // 32 payload + \0
+#define MESSAGE_BUFF_LEN 100 // 32 payload + \0
 
 /* USER CODE END PD */
 
@@ -111,7 +111,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+#if (NRF24_USE_INTERRUPT == 1)
 	  nRF24_Event();
+#endif
+
+		nRF24_ReadData(Message, &MessageLength);
+		if(MessageLength > 0)
+		{
+			HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
+		}
 
     /* USER CODE END WHILE */
 
@@ -180,19 +189,15 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == NRF24_IRQ_Pin)
 	{
+#if (NRF24_USE_INTERRUPT == 1)
 		nRF24_IRQ_Handler();
+#endif
 	}
 }
 
 void nRF24_EventRxCallback(void)
 {
-	do
-	{
-		nRF24_ReceivePacket(Message, &MessageLength);
-		Message[MessageLength] = 0; // end of string
-		MessageLength = sprintf(Message, "%s\n\r", Message);
-		HAL_UART_Transmit(&huart2, Message, MessageLength, 1000);
-	}while(!nRF24_IsRxEmpty());
+
 }
 /* USER CODE END 4 */
 
